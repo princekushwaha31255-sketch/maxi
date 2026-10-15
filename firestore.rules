@@ -1,0 +1,142 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Hardened Global Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // 3. Entity Validation Blueprints
+    function isValidCloudChatMessage(data) {
+      return data.userId is string &&
+             data.userId == request.auth.uid &&
+             data.isUser is bool &&
+             data.text is string && data.text.size() >= 1 && data.text.size() <= 8000 &&
+             data.detectedLanguage is string && data.detectedLanguage in ['Hindi', 'English', 'Hinglish'] &&
+             data.toolInvoked is string && data.toolInvoked.size() <= 120 &&
+             data.status is string && data.status.size() >= 1 && data.status.size() <= 64 &&
+             data.verificationEvidence is string && data.verificationEvidence.size() <= 2000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidCloudActionLog(data) {
+      return data.userId is string &&
+             data.userId == request.auth.uid &&
+             data.toolName is string && data.toolName.size() >= 1 && data.toolName.size() <= 120 &&
+             data.sanitizedSummary is string && data.sanitizedSummary.size() >= 1 && data.sanitizedSummary.size() <= 2000 &&
+             data.status is string && data.status.size() >= 1 && data.status.size() <= 64 &&
+             data.verificationDetails is string && data.verificationDetails.size() <= 2000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidCloudTrustedRule(data) {
+      return data.userId is string &&
+             data.userId == request.auth.uid &&
+             data.toolName is string && data.toolName.size() >= 1 && data.toolName.size() <= 120 &&
+             data.scopeKey is string && data.scopeKey.size() >= 1 && data.scopeKey.size() <= 256 &&
+             data.description is string && data.description.size() >= 1 && data.description.size() <= 500 &&
+             data.isEnabled is bool &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    // 4. Collection Rules under /users/{userId}
+    match /users/{userId} {
+
+      // 4.1 Per-user Chat Messages
+      match /chat_messages/{messageId} {
+        allow get: if isSignedIn() && request.auth.uid == userId && isValidId(userId) && isValidId(messageId) && existing().userId == request.auth.uid;
+        allow list: if isSignedIn() && request.auth.uid == userId && existing().userId == request.auth.uid;
+
+        allow create: if isSignedIn() &&
+                         request.auth.uid == userId &&
+                         isValidId(userId) &&
+                         isValidId(messageId) &&
+                         incoming().keys().hasAll(['userId', 'isUser', 'text', 'detectedLanguage', 'toolInvoked', 'status', 'verificationEvidence', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['userId', 'isUser', 'text', 'detectedLanguage', 'toolInvoked', 'status', 'verificationEvidence', 'createdAt', 'updatedAt']) &&
+                         isValidCloudChatMessage(incoming());
+
+        allow update: if isSignedIn() &&
+                         isValidCloudChatMessage(incoming()) &&
+                         request.auth.uid == userId &&
+                         isValidId(userId) &&
+                         isValidId(messageId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['text', 'status', 'verificationEvidence', 'updatedAt']);
+
+        allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(userId) && isValidId(messageId) && existing().userId == request.auth.uid;
+      }
+
+      // 4.2 Per-user Action Audit Logs
+      match /action_logs/{logId} {
+        allow get: if isSignedIn() && request.auth.uid == userId && isValidId(userId) && isValidId(logId) && existing().userId == request.auth.uid;
+        allow list: if isSignedIn() && request.auth.uid == userId && existing().userId == request.auth.uid;
+
+        allow create: if isSignedIn() &&
+                         request.auth.uid == userId &&
+                         isValidId(userId) &&
+                         isValidId(logId) &&
+                         incoming().keys().hasAll(['userId', 'toolName', 'sanitizedSummary', 'status', 'verificationDetails', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['userId', 'toolName', 'sanitizedSummary', 'status', 'verificationDetails', 'createdAt', 'updatedAt']) &&
+                         isValidCloudActionLog(incoming());
+
+        allow update: if isSignedIn() &&
+                         isValidCloudActionLog(incoming()) &&
+                         request.auth.uid == userId &&
+                         isValidId(userId) &&
+                         isValidId(logId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['sanitizedSummary', 'status', 'verificationDetails', 'updatedAt']);
+
+        allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(userId) && isValidId(logId) && existing().userId == request.auth.uid;
+      }
+
+      // 4.3 Per-user Trusted Automation Rules
+      match /trusted_rules/{ruleId} {
+        allow get: if isSignedIn() && request.auth.uid == userId && isValidId(userId) && isValidId(ruleId) && existing().userId == request.auth.uid;
+        allow list: if isSignedIn() && request.auth.uid == userId && existing().userId == request.auth.uid;
+
+        allow create: if isSignedIn() &&
+                         request.auth.uid == userId &&
+                         isValidId(userId) &&
+                         isValidId(ruleId) &&
+                         incoming().keys().hasAll(['userId', 'toolName', 'scopeKey', 'description', 'isEnabled', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['userId', 'toolName', 'scopeKey', 'description', 'isEnabled', 'createdAt', 'updatedAt']) &&
+                         isValidCloudTrustedRule(incoming());
+
+        allow update: if isSignedIn() &&
+                         isValidCloudTrustedRule(incoming()) &&
+                         request.auth.uid == userId &&
+                         isValidId(userId) &&
+                         isValidId(ruleId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['isEnabled', 'description', 'updatedAt']);
+
+        allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(userId) && isValidId(ruleId) && existing().userId == request.auth.uid;
+      }
+    }
+  }
+}

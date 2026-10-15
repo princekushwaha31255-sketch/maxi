@@ -1,0 +1,6 @@
+{
+  "name": "MAX",
+  "description": "Multilingual Hindi, English, and Hinglish voice and text Android assistant with verified device control, app launching, WhatsApp workflows, and accessibility actions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

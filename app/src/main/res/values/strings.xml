@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">MAX</string>
+    <string name="accessibility_service_label">MAX AI Automation</string>
+    <string name="accessibility_service_description">Allows MAX AI to perform authorized UI actions such as opening notification shade, returning home, tapping buttons, scrolling, and entering text on your explicit command.</string>
+    <string name="notification_listener_label">MAX AI Notification Reader</string>
+    <string name="voice_service_channel_name">MAX AI Voice Wake Monitor</string>
+    <string name="voice_service_notification_title">MAX AI Active</string>
+    <string name="voice_service_notification_text">Listening for wake phrase when configured</string>
+    <string name="security_warning_banner">Security Warning: I have included your API keys in the generated APK file for this prototype. Please be aware that Android APKs can be easily decompiled, and these keys can be extracted by anyone who has access to the file. Do not share this APK file publicly or with unauthorized individuals to prevent potential misuse.</string>
+    <string name="tab_assistant">MAX Console</string>
+    <string name="tab_capabilities">Tools &amp; Apps</string>
+    <string name="tab_permissions">Permissions</string>
+    <string name="tab_history">Audit Log</string>
+    <string name="tab_settings">Settings</string>
+    <string name="mic_button_desc">Activate voice command</string>
+    <string name="stop_speaking_desc">Stop speaking or cancel</string>
+    <string name="send_command_desc">Send command</string>
+    <string name="input_placeholder">Message MAX AI...</string>
+</resources>

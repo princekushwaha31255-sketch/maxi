@@ -1,0 +1,6 @@
+{
+  "summary": "Implementation plan for Map Location Sharing in MAX AI. Covers voice commands in Hindi/English/Hinglish to share Google Maps location via WhatsApp and SMS, in-app interactive Map Location Card with reverse geocoding, LocationManager GPS provider, and runtime location permissions.",
+  "updatedAt": "2026-10-13T10:56:36.793897366Z",
+  "requestFeedback": true,
+  "userFacing": true
+}

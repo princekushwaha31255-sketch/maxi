@@ -1,0 +1,167 @@
+{
+  "entities": {
+    "CloudChatMessage": {
+      "title": "CloudChatMessage",
+      "description": "A user or assistant message in MAX AI synchronized to Firestore per authenticated user.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated Firebase UID owning this message."
+        },
+        "isUser": {
+          "type": "boolean",
+          "description": "True if spoken/typed by user, false if MAX AI response."
+        },
+        "text": {
+          "type": "string",
+          "description": "Message text content."
+        },
+        "detectedLanguage": {
+          "type": "string",
+          "enum": ["Hindi", "English", "Hinglish"],
+          "description": "Detected language style."
+        },
+        "toolInvoked": {
+          "type": "string",
+          "description": "Name of tool executed or empty string."
+        },
+        "status": {
+          "type": "string",
+          "description": "InteractionStatus enum name."
+        },
+        "verificationEvidence": {
+          "type": "string",
+          "description": "Verification evidence string for device actions."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when message was created. Clients must submit FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when message was last updated. Clients must submit FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "isUser",
+        "text",
+        "detectedLanguage",
+        "toolInvoked",
+        "status",
+        "verificationEvidence",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CloudActionLog": {
+      "title": "CloudActionLog",
+      "description": "Sanitized audit log of MAX AI tool execution synchronized per authenticated user.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated Firebase UID owning this audit log."
+        },
+        "toolName": {
+          "type": "string",
+          "description": "Executed tool identifier."
+        },
+        "sanitizedSummary": {
+          "type": "string",
+          "description": "Sanitized description of the action."
+        },
+        "status": {
+          "type": "string",
+          "description": "InteractionStatus enum name."
+        },
+        "verificationDetails": {
+          "type": "string",
+          "description": "System verification proof."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when audit log was created. Clients must submit FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when audit log was updated. Clients must submit FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "toolName",
+        "sanitizedSummary",
+        "status",
+        "verificationDetails",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CloudTrustedRule": {
+      "title": "CloudTrustedRule",
+      "description": "Narrowly scoped user-authorized automation rule synchronized per authenticated user.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated Firebase UID owning this trusted rule."
+        },
+        "toolName": {
+          "type": "string",
+          "description": "Tool name that this rule applies to."
+        },
+        "scopeKey": {
+          "type": "string",
+          "description": "Narrow scope identifier such as whatsapp:+919876543210."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the trusted rule."
+        },
+        "isEnabled": {
+          "type": "boolean",
+          "description": "Whether the trusted rule is currently active."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when rule was created. Clients must submit FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when rule was updated. Clients must submit FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "toolName",
+        "scopeKey",
+        "description",
+        "isEnabled",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/chat_messages/{messageId}": {
+      "schema": "CloudChatMessage",
+      "description": "Per-user synchronized conversation history in MAX AI."
+    },
+    "/users/{userId}/action_logs/{logId}": {
+      "schema": "CloudActionLog",
+      "description": "Per-user synchronized tool execution audit logs in MAX AI."
+    },
+    "/users/{userId}/trusted_rules/{ruleId}": {
+      "schema": "CloudTrustedRule",
+      "description": "Per-user synchronized narrowly-scoped trusted automation rules in MAX AI."
+    }
+  }
+}
